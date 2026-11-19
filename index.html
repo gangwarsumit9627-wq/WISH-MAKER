@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<!-- Romantic Birthday Wish
+     index.html = dhancha | style.css = design + 3D animation | script.js = logic
+     Naam, DOB, photo aur message script.js ke sabse upar badalna hai -->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Happy Birthday</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Poppins:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Udte hue 3D dil yahan bante hain -->
+  <div id="hearts"></div>
+  <canvas id="fx"></canvas>
+  <audio id="music" loop preload="auto"></audio>
+
+  <!-- Upar ki title bar: naam aur options -->
+  <header class="nav" id="nav">
+    <div class="navIn">
+      <button type="button" class="navBrand script" data-go="top"><span aria-hidden="true">&#10022;</span> <b id="navTitle">Happy Birthday</b></button>
+      <button type="button" class="navToggle" id="navToggle" aria-label="Menu kholo" aria-expanded="false" aria-controls="navLinks">&#9776;</button>
+      <nav class="navLinks" id="navLinks" aria-label="Options">
+        <button type="button" class="navBtn" data-go="top">Home</button>
+        <button type="button" class="navBtn stageOnly" data-go="wish">Message</button>
+        <button type="button" class="navBtn stageOnly" id="navReasons" data-go="reasons">Wajah</button>
+        <button type="button" class="navBtn stageOnly" id="navScrap" data-go="scrap">Yaadein</button>
+        <button type="button" class="navBtn navPreview ownerOnly" id="navPreview">Preview</button>
+        <button type="button" class="navBtn" id="navShare">Share</button>
+        <button type="button" class="navBtn navMusic" id="muteBtn">Music: ON</button>
+        <button type="button" class="navBtn navCta ownerOnly" id="gearBtn">Customize</button>
+      </nav>
+    </div>
+    <div class="navTools ownerOnly" id="navTools">
+      <label>Occasion
+        <select id="nOcc"></select></label>
+      <label>Tumhara rishta
+        <select id="nRel">
+          <option value="love">Partner (pyaar)</option>
+          <option value="friend">Dost</option>
+          <option value="family">Family</option>
+        </select></label>
+      <details class="navAnim" id="navAnim">
+        <summary>Animation <span id="nAnimCount" class="cnt">1</span></summary>
+        <div class="animPanel" id="nAnim" role="group" aria-label="Background animation">
+          <p class="animHint">Jitni chaho chuno. Tick karte hi lag jaati hai.</p>
+        </div>
+      </details>
+      <label>Colour
+        <input type="color" id="nColor" value="#ff4d79" aria-label="Colour chuno"></label>
+      <button type="button" class="navBtn nAuto" id="nColorAuto" title="Theme ka apna colour wapas lagao">Auto colour</button>
+    </div>
+  </header>
+
+  <!-- Lock screen: tay samay se pehle page nahi khulega -->
+  <section class="lock" id="lock" hidden>
+    <p class="small">Ye surprise abhi band hai</p>
+    <h2 class="script">Thoda intezaar...</h2>
+    <p class="count" id="count"></p>
+  </section>
+
+  <!-- Side panel: user yahan apni details, photo, video aur message daalta hai -->
+  <aside class="drawer" id="drawer" aria-hidden="true">
+    <div class="dHead">
+      <h3 class="script">Apna surprise banao</h3>
+      <button type="button" class="close" id="closeBtn" aria-label="Close">&times;</button>
+    </div>
+    <form id="form" autocomplete="off">
+      <label>Jisko wish karni hai (naam)
+        <input id="fName" maxlength="30"></label>
+      <label>Nickname (pyaar se bulane wala naam)
+        <input id="fNick" maxlength="30" placeholder="jaise Chhotu, Jaan"></label>
+      <label>Tumhara naam
+        <input id="fFrom" maxlength="30"></label>
+      <label>Janam tithi (date of birth)
+        <input type="date" id="fDob"></label>
+      <label>Photo upload karo
+        <input type="file" id="fPhoto" accept="image/*"></label>
+      <label>ya Photo ka link paste karo
+        <input type="url" id="fPhotoUrl" placeholder="https://.../photo.jpg"></label>
+      <label>Short video upload karo (candle wali clip)
+        <input type="file" id="fVideo" accept="video/*"></label>
+      <label>ya Video ka link paste karo
+        <input type="url" id="fVideoUrl" placeholder="https://.../clip.mp4"></label>
+      <label>Video kab chale
+        <select id="fVideoWhen">
+          <option value="after">Candle bujhane ke baad</option>
+          <option value="before">Cake se pehle</option>
+        </select></label>
+      <label>Occasion
+        <select id="fOcc"></select></label>
+      <label>Tumhara rishta
+        <select id="fRel">
+          <option value="love">Partner (pyaar)</option>
+          <option value="friend">Dost</option>
+          <option value="family">Family</option>
+        </select></label>
+      <label>Apna khud ka title (khali = occasion wala)
+        <input id="fTitle" maxlength="30" placeholder="jaise: Happy 25th Birthday"></label>
+      <label>Message ka andaaz
+        <select id="fStyle">
+          <option value="khaas">Occasion wala khaas message</option>
+          <option value="shayari">Shayari andaaz</option>
+          <option value="emotional">Emotional</option>
+          <option value="funny">Funny / masti</option>
+          <option value="short">Chhota (ek line)</option>
+        </select></label>
+      <button type="button" class="btn ghost sug" id="sugBtn">Message suggestion do</button>
+      <label>Message (har line alag likho)
+        <textarea id="fMsg" rows="6"></textarea></label>
+      <label>Gana (music) upload karo
+        <input type="file" id="fMusic" accept="audio/*"></label>
+      <label>ya Gane ka link paste karo
+        <input type="url" id="fMusicUrl" placeholder="https://.../song.mp3"></label>
+      <label>Tumhe pyaar karne ki wajah (har line alag)
+        <textarea id="fReasons" rows="4"></textarea></label>
+      <label>Theme
+        <select id="fTheme"><option value="rose">Rose</option><option value="gold">Gold</option><option value="midnight">Midnight blue</option><option value="violet">Violet</option><option value="emerald">Emerald green</option><option value="tricolor">Tricolor (Tiranga)</option><option value="ruby">Ruby red</option></select></label>
+      <fieldset class="chk" id="fAnim">
+        <legend>Background animation (jitni chaho chuno)</legend>
+      </fieldset>
+      <label>Effect
+        <select id="fEffect">
+          <option value="normal">Normal</option>
+          <option value="glow">Glow (chamak)</option>
+          <option value="slow">Dheema</option>
+          <option value="fast">Tez</option>
+          <option value="dense">Zyada (bheed)</option>
+        </select></label>
+      <label>Apne emoji (jo chaho likho, wahi udenge)
+        <input id="fEmoji" maxlength="40" placeholder="jaise: 🦋🌹🥳🍕"></label>
+      <label>Colour (animation aur page ka accent)
+        <input type="color" id="fAnimColor" value="#ff4d79"></label>
+      <button type="button" class="btn ghost sug" id="colorAuto">Auto colour (theme wala)</button>
+      <label>Yaadon ka scrapbook (4 photo tak)
+        <input type="file" id="fScrap" accept="image/*" multiple></label>
+      <label>Password (khali = koi password nahi)
+        <input type="password" id="fPass" autocomplete="new-password" maxlength="40"></label>
+      <label>Page kab khule (khali = turant)
+        <input type="datetime-local" id="fLock"></label>
+      <div class="dBtns">
+        <button type="submit" class="btn">Apply</button>
+        <button type="button" class="btn playBtn" id="playBtn">&#9654; Play</button>
+        <button type="button" class="btn ghost" id="resetBtn">Reset</button>
+      </div>
+      <p class="note" id="fNote"></p>
+    </form>
+    <div class="share">
+      <button type="button" class="btn" id="linkBtn">Share link banao</button>
+      <input id="shareLink" readonly placeholder="Link yahan aayega">
+      <button type="button" class="btn ghost" id="copyBtn">Link copy karo</button>
+      <button type="button" class="btn ghost" id="waBtn">WhatsApp par bhejo</button>
+      <div class="upBox" id="upBox" hidden>
+        <p class="upPct" id="upPct"></p>
+        <div class="bar"><i id="barFill"></i></div>
+        <p class="upRows" id="upRows"></p>
+      </div>
+      <p class="note" id="shareNote"></p>
+    </div>
+  </aside>
+
+  <!-- Pehli screen: tap karne par surprise khulta hai -->
+  <section class="intro" id="intro">
+    <p class="small" id="introHint">Ek chhota sa surprise tumhare liye</p>
+    <h1 class="script">Tap karo</h1>
+    <button type="button" class="btn pulse" id="openBtn">Open my surprise</button>
+    <div class="gate" id="gate" hidden>
+      <input type="password" id="gateIn" placeholder="Password daalo" autocomplete="off">
+      <button type="button" class="btn" id="gateBtn">Kholo</button>
+      <p class="note" id="gateNote"></p>
+    </div>
+  </section>
+
+  <!-- Tap ke baad pehle ye animation: 3D lifafa khulta hai -->
+  <section class="opening" id="opening" hidden>
+    <div class="env" id="env">
+      <div class="back"></div>
+      <div class="letter" id="letterTxt">Happy<br>Birthday<br>&#10084;</div>
+      <div class="front"></div>
+      <div class="flap"></div>
+    </div>
+    <p class="openText script" id="openText">Ek chhoti si video tumhare liye...</p>
+  </section>
+
+  <!-- Uske baad short video (video.mp4) apne aap chalti hai -->
+  <section class="theater" id="theater" hidden>
+    <video id="video" playsinline preload="auto"></video>
+    <button type="button" class="skip" id="skipBtn">Skip</button>
+  </section>
+
+  <!-- Cake: bear + panda (3D characters) pehle candles bujhate hain, phir cake kaatte hain (kareeb 8 second) -->
+  <section class="cakeScr" id="cakeScr" hidden>
+    <div class="bake">
+      <div class="pal l"><svg class="chr" viewBox="0 0 200 230" aria-hidden="true">
+        <defs><radialGradient id="gB" cx=".35" cy=".3" r=".85"><stop offset="0" stop-color="#e0aa84"/><stop offset="1" stop-color="#b17a53"/></radialGradient></defs>
+        <ellipse cx="100" cy="222" rx="64" ry="8" fill="rgba(0,0,0,.3)"/>
+        <g stroke="#5b2e1f" stroke-width="5" stroke-linejoin="round" stroke-linecap="round">
+          <ellipse cx="72" cy="208" rx="22" ry="14" fill="url(#gB)"/><ellipse cx="128" cy="208" rx="22" ry="14" fill="url(#gB)"/>
+          <ellipse cx="100" cy="162" rx="46" ry="48" fill="url(#gB)"/>
+          <path class="arm armL" d="M66 138C40 128 22 134 18 148C30 160 52 158 68 154Z" fill="url(#gB)"/>
+          <path class="arm armR" d="M134 138C160 128 178 134 182 148C170 160 148 158 132 154Z" fill="url(#gB)"/>
+          <g class="head">
+            <circle cx="44" cy="42" r="21" fill="url(#gB)"/><circle cx="156" cy="42" r="21" fill="url(#gB)"/>
+            <circle cx="44" cy="42" r="9" fill="#8a5a3c" stroke="none"/><circle cx="156" cy="42" r="9" fill="#8a5a3c" stroke="none"/>
+            <ellipse cx="100" cy="88" rx="72" ry="62" fill="url(#gB)"/>
+            <ellipse class="ch" cx="52" cy="104" rx="14" ry="12" fill="#f3b865" stroke="none"/><ellipse class="ch" cx="148" cy="104" rx="14" ry="12" fill="#f3b865" stroke="none"/>
+            <circle class="eye" cx="76" cy="86" r="6.5" fill="#3a1a10" stroke="none"/><circle class="eye" cx="124" cy="86" r="6.5" fill="#3a1a10" stroke="none"/>
+            <path class="mo" d="M91 98Q100 118 109 98Q100 94 91 98Z" fill="#f48a8e" stroke-width="3"/>
+          </g>
+        </g>
+      </svg></div>
+      <div class="cake" id="cake">
+        <div class="plate"></div>
+        <div class="ck bot"></div>
+        <div class="gap"></div>
+        <div class="ck sl"></div>
+        <div class="ck top"></div>
+        <i class="berry" style="margin-left:-62px"></i><i class="berry" style="margin-left:46px"></i><i class="berry" style="margin-left:-8px;bottom:128px"></i>
+        <div class="candles"><i></i><i></i><i></i><i></i><i></i></div>
+        <div class="knife"></div>
+      </div>
+      <div class="pal r"><svg class="chr" viewBox="0 0 200 230" aria-hidden="true">
+        <defs><radialGradient id="gP" cx=".35" cy=".3" r=".85"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#e2e0ec"/></radialGradient></defs>
+        <ellipse cx="100" cy="222" rx="64" ry="8" fill="rgba(0,0,0,.3)"/>
+        <g stroke="#5b2e1f" stroke-width="5" stroke-linejoin="round" stroke-linecap="round">
+          <ellipse cx="72" cy="208" rx="22" ry="14" fill="url(#gP)"/><ellipse cx="128" cy="208" rx="22" ry="14" fill="url(#gP)"/>
+          <ellipse cx="100" cy="162" rx="46" ry="48" fill="url(#gP)"/>
+          <path d="M86 150L100 156L114 150L114 164L100 158L86 164Z" fill="#4a2c2a"/>
+          <path class="arm armL" d="M66 138C40 128 22 134 18 148C30 160 52 158 68 154Z" fill="url(#gP)"/>
+          <path class="arm armR" d="M134 138C160 128 178 134 182 148C170 160 148 158 132 154Z" fill="url(#gP)"/>
+          <g class="head">
+            <circle cx="46" cy="42" r="21" fill="#3b2826"/><circle cx="154" cy="42" r="21" fill="#3b2826"/>
+            <ellipse cx="100" cy="88" rx="72" ry="62" fill="url(#gP)"/>
+            <ellipse class="ch" cx="52" cy="104" rx="14" ry="12" fill="#f7a9b6" stroke="none"/><ellipse class="ch" cx="148" cy="104" rx="14" ry="12" fill="#f7a9b6" stroke="none"/>
+            <circle class="eye" cx="76" cy="86" r="6.5" fill="#3a1a10" stroke="none"/><circle class="eye" cx="124" cy="86" r="6.5" fill="#3a1a10" stroke="none"/>
+            <path class="mo" d="M91 98Q100 118 109 98Q100 94 91 98Z" fill="#f48a8e" stroke-width="3"/>
+          </g>
+        </g>
+      </svg></div>
+    </div>
+    <p class="script cakeMsg" id="cakeMsg">Wish maango, phir candles bujhao</p>
+    <button type="button" class="btn" id="blowBtn">Phoonk maaro</button>
+  </section>
+
+  <!-- Asli birthday screen -->
+  <main class="stage" id="stage" hidden>
+    <div class="scene">
+      <!-- 3D photo card: mouse ya ungli ke saath tilt hota hai -->
+      <div class="card3d" id="card3d">
+        <div class="ring"></div>
+        <div class="frame" id="frame">
+          <img id="photo" alt="Birthday photo">
+        </div>
+      </div>
+
+      <!-- Ghumta hua 3D cube -->
+      <div class="cubeWrap" aria-hidden="true">
+        <div class="cube">
+          <span>&#10084;</span><span>&#127874;</span><span>&#127873;</span>
+          <span>&#10024;</span><span>&#127801;</span><span>&#128149;</span>
+        </div>
+      </div>
+    </div>
+
+    <h2 class="title script"><b id="titleTxt">Happy Birthday</b><br><span id="name"></span></h2>
+    <p class="dob" id="dob"></p>
+    <p class="age" id="ageInfo"></p>
+    <p class="wish" id="wish"></p>
+    <p class="from script" id="from"></p>
+    <div class="reasons" id="reasons"></div>
+    <div class="scrap" id="scrap"></div>
+    <div class="actions">
+      <button type="button" class="btn" id="moreBtn">Send more love</button>
+      <button type="button" class="btn ghost" id="replayBtn">Dobara dekho</button>
+      <button type="button" class="btn ghost" id="waStage">WhatsApp</button>
+    </div>
+  </main>
+  <!-- Footer: brand, kaam ke buttons aur niche ki patti -->
+  <footer class="foot" id="foot">
+    <div class="footIn">
+      <div class="fBrand">
+        <p class="fLogo script"><span aria-hidden="true">&#10022;</span> Birthday Wish</p>
+        <p class="fTag">Apno ke liye ek chhota sa 3D surprise. Photo, video, gana aur dil ki baat, sab ek link me.</p>
+      </div>
+      <div>
+        <h4 class="fHead">Surprise</h4>
+        <ul class="fList">
+          <li><button type="button" class="fLink" id="footReplay">Dobara dekho</button></li>
+          <li><button type="button" class="fLink" id="footWA">WhatsApp par bhejo</button></li>
+          <li><button type="button" class="fLink" id="footCopy">Link copy karo</button></li>
+          <li class="ownerOnly"><button type="button" class="fLink" id="footCustom">Customize karo</button></li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="fHead">Khaas baatein</h4>
+        <ul class="fList info">
+          <li>Hamesha free</li>
+          <li>Optional password lock</li>
+          <li>Sirf link wale hi dekh sakte hain</li>
+          <li>Mobile par bhi smooth</li>
+        </ul>
+      </div>
+    </div>
+    <div class="fBar">
+      <span>&copy; <span id="footYear"></span> Birthday Wish</span>
+      <span>Made with <span class="fHeart" aria-label="pyaar">&#10084;</span> by <b id="footFrom"></b></span>
+    </div>
+  </footer>
+  <button type="button" class="toTop" id="toTop" aria-label="Upar jao">&#8593;</button>
+
+  <!-- Share menu (jab phone ka apna share box na ho, jaise computer par) -->
+  <div class="shareMenu" id="shareMenu" role="menu" aria-label="Share karo" hidden>
+    <p class="smHead">Link share karo</p>
+    <button type="button" class="smItem" role="menuitem" data-app="wa">WhatsApp</button>
+    <button type="button" class="smItem" role="menuitem" data-app="tg">Telegram</button>
+    <button type="button" class="smItem" role="menuitem" data-app="mail">Email</button>
+    <button type="button" class="smItem" role="menuitem" data-app="copy">Link copy karo</button>
+  </div>
+  <!-- Preview: kab kya aayega -->
+  <div class="modal" id="preview" role="dialog" aria-modal="true" aria-labelledby="pvTitle" hidden>
+    <div class="pvBox">
+      <div class="pvHead">
+        <h3 class="script" id="pvTitle">Preview: kab kya aayega</h3>
+        <button type="button" class="pvClose" id="pvClose" aria-label="Band karo">&times;</button>
+      </div>
+      <p class="pvSum" id="pvSum"></p>
+      <ol class="pvList" id="pvList"></ol>
+      <div class="pvFoot"><button type="button" class="btn" id="pvPlay">Shuru se poora preview chalao</button></div>
+    </div>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>

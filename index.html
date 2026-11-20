@@ -42,6 +42,15 @@
           <option value="friend">Dost</option>
           <option value="family">Family</option>
         </select></label>
+      <details class="navAnim navTheme" id="navTheme">
+        <summary>&#127912; Theme: <span id="navThemeName">Rose</span></summary>
+        <div class="animPanel" id="nThemePanel" role="group" aria-label="Theme chuno">
+          <p class="animHint">Theme chuno. Rishta badalne par theme bhi badal sakta hai.</p>
+          <div id="nThemeBtns"></div>
+          <label><input type="checkbox" id="nRelAuto" checked> Rishta badle to theme bhi badle</label>
+          <button type="button" class="btn ghost nRelCustom" id="nRelCustom">Rishta ke themes customize karo</button>
+        </div>
+      </details>
       <details class="navAnim" id="navAnim">
         <summary>Animation <span id="nAnimCount" class="cnt">1</span></summary>
         <div class="animPanel" id="nAnim" role="group" aria-label="Background animation">
@@ -51,6 +60,7 @@
       <label>Colour
         <input type="color" id="nColor" value="#ff4d79" aria-label="Colour chuno"></label>
       <button type="button" class="navBtn nAuto" id="nColorAuto" title="Theme ka apna colour wapas lagao">Auto colour</button>
+      <button type="button" class="navBtn nAuto lockChip" id="lockChip" hidden title="Receiver ko is samay tak lock dikhega. Tap karke lock screen dekho"></button>
     </div>
   </header>
 
@@ -59,6 +69,15 @@
     <p class="small">Ye surprise abhi band hai</p>
     <h2 class="script">Thoda intezaar...</h2>
     <p class="count" id="count"></p>
+    <!-- Jisne banaya hai wo timer se pehle khol sake -->
+    <div class="ownBox" id="ownBox">
+      <button type="button" class="btn ghost" id="ownOpen">Main banane wala hoon, abhi kholo</button>
+      <div class="ownRow" id="ownRow" hidden>
+        <input id="ownIn" placeholder="Owner code daalo" autocomplete="off" maxlength="40">
+        <button type="button" class="btn" id="ownGo">Kholo</button>
+        <p class="note" id="ownNote"></p>
+      </div>
+    </div>
   </section>
 
   <!-- Side panel: user yahan apni details, photo, video aur message daalta hai -->
@@ -67,6 +86,7 @@
       <h3 class="script">Apna surprise banao</h3>
       <button type="button" class="close" id="closeBtn" aria-label="Close">&times;</button>
     </div>
+    <p class="note savedNote" id="savedNote" hidden></p>
     <form id="form" autocomplete="off">
       <label>Jisko wish karni hai (naam)
         <input id="fName" maxlength="30"></label>
@@ -118,6 +138,13 @@
         <textarea id="fReasons" rows="4"></textarea></label>
       <label>Theme
         <select id="fTheme"><option value="rose">Rose</option><option value="gold">Gold</option><option value="midnight">Midnight blue</option><option value="violet">Violet</option><option value="emerald">Emerald green</option><option value="tricolor">Tricolor (Tiranga)</option><option value="ruby">Ruby red</option></select></label>
+      <fieldset class="chk" id="relBox">
+        <legend>Rishta ke hisaab se theme (customize)</legend>
+        <label><input type="checkbox" id="fRelAuto" checked> Rishta badalte hi theme bhi badle</label>
+        <label class="rtRow">Partner (pyaar) <select id="fRtLove"></select></label>
+        <label class="rtRow">Dost <select id="fRtFriend"></select></label>
+        <label class="rtRow">Family <select id="fRtFamily"></select></label>
+      </fieldset>
       <fieldset class="chk" id="fAnim">
         <legend>Background animation (jitni chaho chuno)</legend>
       </fieldset>
@@ -138,8 +165,10 @@
         <input type="file" id="fScrap" accept="image/*" multiple></label>
       <label>Password (khali = koi password nahi)
         <input type="password" id="fPass" autocomplete="new-password" maxlength="40"></label>
-      <label>Page kab khule (khali = turant)
+      <label>Page kab khule (receiver ke liye. Khali = turant. Tum timer se pehle bhi khol sakte ho)
         <input type="datetime-local" id="fLock"></label>
+      <label>Owner code (timer se pehle kholne ke liye. Khali = apne aap ban jayega)
+        <input id="fOwner" maxlength="40" placeholder="jaise 482913" autocomplete="off"></label>
       <div class="dBtns">
         <button type="submit" class="btn">Apply</button>
         <button type="button" class="btn playBtn" id="playBtn">&#9654; Play</button>
@@ -274,6 +303,7 @@
     <div class="actions">
       <button type="button" class="btn" id="moreBtn">Send more love</button>
       <button type="button" class="btn ghost" id="replayBtn">Dobara dekho</button>
+      <button type="button" class="btn ghost ownerOnly" id="editAgain" hidden>Customize dobara badlo</button>
       <button type="button" class="btn ghost" id="waStage">WhatsApp</button>
     </div>
   </main>

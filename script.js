@@ -7,7 +7,7 @@ const FOOTER_NAME = 'Sumiii';
 const CONFIG = {
   name: 'Her Name',          // jisko wish karni hai uska naam
   nick: '',                  // nickname (khali = nahi dikhega)
-  from: 'Sumiii',         // tumhara naam
+  from: '',                  // tumhara naam
   dob: '2003-02-14',         // janam tithi: saal-mahina-din (YYYY-MM-DD)
   photo: 'photo.jpg',        // photo ka naam. Isi folder me rakhna
   music: 'music.mp3',        // gana (na ho to bina music chalega)
@@ -25,6 +25,10 @@ const CONFIG = {
   emoji: '',                 // apne emoji jo animation me udenge, jaise '🦋🌹🥳'
   scrap: [],                 // yaadon ke scrapbook ki photos (4 tak)
   pw: '',                    // password ka hash (khali = koi password nahi)
+  relThemes: { love: 'rose', friend: 'midnight', family: 'gold' },   // har rishta ka apna theme (Customize me badal sakte ho)
+  relAuto: true,             // true = rishta badalte hi uska theme bhi badle
+  owner: '',                 // owner code (sirf tumhare device par rehta hai, link me nahi jaata)
+  ok: '',                    // owner code ka hash (link me jaata hai, timer se pehle kholne ke liye)
   lines: [                   // message ki lines (badal sakte ho)
     'Meri jaan, duniya ke liye aaj ek aam din hai,',
     'par mere liye sabse khaas, kyunki aaj tum is duniya me aaye.',
@@ -175,6 +179,7 @@ const REL_TXT = {
 };
 // Rishta chunte hi effect lagta hai. Theme aur animation occasion se aate hain
 const REL_EFFECT = { love: 'glow', friend: 'fast', family: 'normal' };
+const THEME_NAME = { rose: 'Rose', gold: 'Gold', midnight: 'Midnight blue', violet: 'Violet', emerald: 'Emerald green', tricolor: 'Tricolor (Tiranga)', ruby: 'Ruby red' };
 const THEME_COL = { rose: '#ff4d79', gold: '#ffb347', midnight: '#6ea8ff', violet: '#b388ff', emerald: '#34d399', tricolor: '#ff9933', ruby: '#ff5a5f' };
 
 // Message ke alag-alag andaaz (har occasion par lagte hain). {o} = occasion ka naam, {t} = title
@@ -227,6 +232,22 @@ function buildOptions() {
       op.value = k; op.textContent = OCC[k].icon + ' ' + OCC[k].label;
       s.append(op);
     });
+  });
+  ['fRtLove', 'fRtFriend', 'fRtFamily'].forEach(id => {   // rishta ke theme ki list
+    const sel = $(id); sel.textContent = '';
+    Object.keys(THEME_NAME).forEach(k => {
+      const op = document.createElement('option');
+      op.value = k; op.textContent = THEME_NAME[k];
+      sel.append(op);
+    });
+  });
+  Object.keys(THEME_NAME).forEach(k => {                  // title bar ke Theme button ki list
+    const b = document.createElement('button'), dot = document.createElement('i');
+    b.type = 'button'; b.className = 'themeOpt'; b.dataset.theme = k;
+    dot.style.background = THEME_COL[k];
+    b.append(dot, ' ' + THEME_NAME[k]);
+    b.addEventListener('click', () => { $('fTheme').value = k; previewLook(); $('navTheme').open = false; });
+    $('nThemeBtns').append(b);
   });
   ['fAnim', 'nAnim'].forEach(id => {
     const box = $(id);
@@ -540,7 +561,7 @@ function fillForm() {
 function toggleDrawer(open) {
   $('drawer').classList.toggle('open', open);
   $('drawer').setAttribute('aria-hidden', String(!open));
-  if (open) fillForm();
+  if (open) { fillForm(); updateEditLabels(); }
 }
 
 function readForm() {
@@ -562,6 +583,8 @@ function readForm() {
   CONFIG.emoji = $('fEmoji').value.trim();
 
   CONFIG.videoWhen = $('fVideoWhen').value;
+  CONFIG.owner = $('fOwner').value.trim();
+  readRelTheme();
 
   const problems = [];
   // Har media ke liye: pehle device ki file, nahi to paste kiya hua link
@@ -605,7 +628,12 @@ function applyForm(e) {
   if (readForm().length) return;                      // galat file ho to panel khula rahe
 
   toggleDrawer(false);
+  shareUrl = ''; $('shareLink').value = '';           // badlav ke baad purana link purana ho gaya
+  ownerBypass = false;
+  markCustomized(); saveDraft();                      // customization yaad rakho, taaki dobara badal sako
   applyTheme(); checkLock();
+  if (CONFIG.unlock && new Date(CONFIG.unlock).getTime() > Date.now())
+    showToast('Timer lag gaya. Receiver ko tab tak lock dikhega, tum abhi bhi khol sakte ho.', 5500);
   $('introHint').textContent = 'Details lag gayi hain. Ab surprise kholo';
   if (!$('stage').hidden) fillStage(true);            // main page dikh raha ho to turant badlo
 }
@@ -615,6 +643,7 @@ function playForm() {
   if (readForm().length) return;                      // galat file ho to panel khula rahe
   toggleDrawer(false);
   applyTheme();
+  markCustomized(); saveDraft();
   clearInterval(lockTimer); $('lock').hidden = true;  // test ke liye lock screen hata do (Apply dabane par wapas lagega)
   $('introHint').textContent = 'Details lag gayi hain. Ab surprise kholo';
   previewGo('env');
@@ -626,7 +655,9 @@ function resetForm() {
   scrapBlobs.forEach(u => URL.revokeObjectURL(u)); scrapBlobs = [];
   $('fPass').value = ''; $('fScrap').value = ''; msgTouched = false;
   Object.assign(CONFIG, JSON.parse(JSON.stringify(DEFAULTS)));
-  fillForm(); applyTheme(); checkLock();
+  try { localStorage.removeItem(DRAFT_KEY); } catch (e) {}
+  shareUrl = ''; $('shareLink').value = ''; customized = false; ownerBypass = false;
+  fillForm(); applyTheme(); checkLock(); updateEditLabels();
   $('fNote').textContent = 'Reset ho gaya.';
   if (!$('stage').hidden) fillStage(true);
 }
@@ -691,6 +722,23 @@ function fillLook() {
   $('fEmoji').value = CONFIG.emoji || '';
   $('fAnimColor').dataset.auto = CONFIG.animColor ? '0' : '1';
   $('fAnimColor').value = okColor(CONFIG.animColor) || THEME_COL[CONFIG.theme] || '#ff4d79';
+  const rt = Object.assign({}, DEFAULTS.relThemes, CONFIG.relThemes || {});
+  $('fRtLove').value = rt.love; $('fRtFriend').value = rt.friend; $('fRtFamily').value = rt.family;
+  $('fRelAuto').checked = CONFIG.relAuto !== false;
+  $('fOwner').value = CONFIG.owner || '';
+}
+
+// Rishta ke themes aur "rishta badle to theme badle" ko form se CONFIG me lo
+function readRelTheme() {
+  CONFIG.relThemes = { love: $('fRtLove').value, friend: $('fRtFriend').value, family: $('fRtFamily').value };
+  CONFIG.relAuto = $('fRelAuto').checked;
+}
+// Is rishta ka chuna hua theme lagao (agar "rishta ke saath theme badle" on hai)
+function applyRelTheme() {
+  readRelTheme();
+  const t = CONFIG.relAuto ? CONFIG.relThemes[$('fRel').value] : '';
+  if (t) $('fTheme').value = t;
+  previewLook();
 }
 
 // Title bar ke Occasion / Rishta / Colour ko CONFIG ke saath mila do
@@ -701,6 +749,9 @@ function syncNav() {
   const list = animList();
   document.querySelectorAll('#nAnim input').forEach(i => { i.checked = list.includes(i.value); });
   $('nAnimCount').textContent = list.length;
+  $('navThemeName').textContent = THEME_NAME[CONFIG.theme] || CONFIG.theme;
+  $('nRelAuto').checked = CONFIG.relAuto !== false;
+  document.querySelectorAll('#nThemeBtns .themeOpt').forEach(b => b.classList.toggle('on', b.dataset.theme === CONFIG.theme));
 }
 
 // Occasion chunte hi uska theme aur animation apne aap lag jaata hai (baad me khud badal sakte ho)
@@ -716,6 +767,9 @@ function occPreset() {
 function relPreset() {
   occPreset();
   $('fEffect').value = REL_EFFECT[$('fRel').value] || 'normal';
+  readRelTheme();                                      // rishta badalte hi uska theme bhi lag jaye
+  const t = CONFIG.relAuto ? CONFIG.relThemes[$('fRel').value] : '';
+  if (t) $('fTheme').value = t;
 }
 
 // Panel me look badalte hi turant background par dikhao (Apply dabane ki zaroorat nahi)
@@ -730,6 +784,7 @@ function previewLook() {
   CONFIG.anim = getAnimChecks();
   CONFIG.effect = $('fEffect').value;
   CONFIG.animColor = c.dataset.auto === '0' ? c.value : '';
+  readRelTheme();
   CONFIG.title = $('fTitle').value.trim();
   CONFIG.emoji = $('fEmoji').value.trim();
   let retype = false;
@@ -799,21 +854,100 @@ function renderScrap() {
   box.append(title, grid);
 }
 
-// Tay samay se pehle lock screen aur countdown
+// Tay samay se pehle lock screen aur countdown.
+// Receiver ko lock dikhta hai. Jisne banaya hai (owner) wo pehle khol sakta hai:
+//  - customize karne wale ko lock screen nahi rokta (sirf upar "Timer" button dikhta hai)
+//  - link kholne par: usi device par apne aap, ya owner code daal kar kisi bhi device par
 let lockTimer;
-function checkLock() {
+let ownerBypass = false;
+const isViewer = () => document.body.classList.contains('view');
+
+function updateLockChip(pending, t) {
+  const c = $('lockChip');
+  if (!pending || isViewer()) { c.hidden = true; return; }
+  c.hidden = false;
+  c.textContent = '\uD83D\uDD12 Timer: ' + new Date(t).toLocaleString('en-IN');
+}
+function checkLock(preview) {
   clearInterval(lockTimer);
   const t = CONFIG.unlock ? new Date(CONFIG.unlock).getTime() : 0;
-  if (!t || Date.now() >= t) { $('lock').hidden = true; return; }
+  const pending = !!t && Date.now() < t;
+  updateLockChip(pending, t);
+  if (!pending || ownerBypass || (!isViewer() && !preview)) { $('lock').hidden = true; return; }
   $('lock').hidden = false;
+  $('ownBox').hidden = isViewer() && !CONFIG.ok;     // purane link me owner code nahi hota
+  $('ownRow').hidden = true; $('ownNote').textContent = '';
   const tick = () => {
     const ms = t - Date.now();
-    if (ms <= 0) { clearInterval(lockTimer); $('lock').hidden = true; return; }
+    if (ms <= 0) { clearInterval(lockTimer); $('lock').hidden = true; updateLockChip(false, t); return; }
     $('count').textContent = Math.floor(ms / 864e5) + ' din ' + Math.floor(ms / 36e5) % 24 + ' ghanta ' +
       Math.floor(ms / 6e4) % 60 + ' minute ' + Math.floor(ms / 1e3) % 60 + ' second baaki';
   };
   tick();
   lockTimer = setInterval(tick, 1000);
+}
+
+// Owner ki pehchaan (is device par yaad rehti hai)
+const OWN_KEY = 'bw_owner_v1';
+function ownerList() { try { return JSON.parse(localStorage.getItem(OWN_KEY) || '[]'); } catch (e) { return []; } }
+function rememberOwner(hash) {
+  if (!hash) return;
+  try { const l = ownerList(); if (!l.includes(hash)) { l.push(hash); localStorage.setItem(OWN_KEY, JSON.stringify(l.slice(-20))); } } catch (e) {}
+}
+function becomeOwner() {
+  document.body.classList.remove('view');            // owner ko Customize wagairah wapas dikhne lagta hai
+  $('gate').hidden = true; $('openBtn').hidden = false;
+  ownerBypass = true; markCustomized(); checkLock();
+}
+async function tryOwnerCode() {
+  const v = $('ownIn').value.trim();
+  if (v && CONFIG.ok && await sha256('own:' + v) === CONFIG.ok) {
+    rememberOwner(CONFIG.ok); becomeOwner();
+    showToast('Owner mode on. Tum timer se pehle khol sakte ho aur Customize se badal bhi sakte ho.', 5500);
+  } else $('ownNote').textContent = 'Owner code galat hai.';
+}
+
+// Customize ek baar karne ke baad dobara badalne ke liye: draft is device par yaad rehta hai
+const DRAFT_KEY = 'bw_draft_v1';
+const DRAFT_KEYS = ['name', 'nick', 'from', 'dob', 'lines', 'reasons', 'theme', 'unlock', 'photo', 'video', 'music', 'videoWhen',
+  'occasion', 'relation', 'anim', 'effect', 'animColor', 'title', 'emoji', 'scrap', 'relThemes', 'relAuto', 'owner', 'ok'];
+let customized = false;
+function saveDraft() {
+  try {
+    const d = {};
+    DRAFT_KEYS.forEach(k => {
+      let v = CONFIG[k];
+      if (MEDIA.includes(k) && String(v).startsWith('blob:')) v = DEFAULTS[k];            // device wali file refresh ke baad nahi bachti
+      if (k === 'scrap') v = (v || []).filter(u => !String(u).startsWith('blob:'));
+      d[k] = v;
+    });
+    localStorage.setItem(DRAFT_KEY, JSON.stringify({ d, link: shareUrl }));
+  } catch (e) {}
+}
+function loadDraft() {
+  try {
+    const raw = localStorage.getItem(DRAFT_KEY);
+    if (!raw) return;
+    const o = JSON.parse(raw), d = o.d || {};
+    DRAFT_KEYS.forEach(k => { if (d[k] !== undefined && d[k] !== null) CONFIG[k] = d[k]; });
+    if (!Array.isArray(CONFIG.lines) || !CONFIG.lines.length) CONFIG.lines = DEFAULTS.lines;
+    if (!Array.isArray(CONFIG.reasons)) CONFIG.reasons = DEFAULTS.reasons;
+    if (!Array.isArray(CONFIG.scrap)) CONFIG.scrap = [];
+    customized = true;
+    if (o.link) { shareUrl = o.link; $('shareLink').value = o.link; }
+    $('introHint').textContent = 'Tumhari customization saved hai. Customize se dobara badal sakte ho';
+  } catch (e) {}
+}
+function markCustomized() { customized = true; updateEditLabels(); }
+function updateEditLabels() {
+  $('gearBtn').textContent = customized ? 'Customize edit karo' : 'Customize';
+  $('footCustom').textContent = customized ? 'Customize dobara badlo' : 'Customize karo';
+  document.querySelector('#drawer .dHead h3').textContent = customized ? 'Surprise dobara edit karo' : 'Apna surprise banao';
+  $('editAgain').hidden = !customized;
+  const n = $('savedNote');
+  n.hidden = !customized;
+  n.textContent = 'Pehle ki customization yahan bhari hui hai. Jo badalna hai badlo, phir Apply ya "Share link banao" dabao. ' +
+    'Device se upload ki hui photo/video/gana "Share link banao" ke baad hi yaad rehti hain.';
 }
 
 // "Wajah" wale 3D flip cards
@@ -894,7 +1028,7 @@ const decode = t => JSON.parse(decodeURIComponent(escape(atob(t.replace(/-/g, '+
 
 // ---- Chhota link: chhote keys + default jaisi values hata do + Cloudinary ka lamba hissa chhota + compress ----
 const SHORT = { name: 'n', nick: 'k', from: 'f', dob: 'd', lines: 'l', reasons: 'r', theme: 't', unlock: 'u', photo: 'p', video: 'v', music: 'm',
-  videoWhen: 'w', occasion: 'o', relation: 'q', anim: 'a', effect: 'e', animColor: 'c', title: 'i', emoji: 'j', scrap: 's', pw: 'x' };
+  videoWhen: 'w', occasion: 'o', relation: 'q', anim: 'a', effect: 'e', animColor: 'c', title: 'i', emoji: 'j', scrap: 's', pw: 'x', relThemes: 'rt', relAuto: 'ra', ok: 'y' };
 const LONG = {}; for (const k in SHORT) LONG[SHORT[k]] = k;
 const MEDIA = ['photo', 'video', 'music'];
 const cloudPre = () => UPLOAD.cloudName ? 'https://res.cloudinary.com/' + UPLOAD.cloudName + '/' : '';
@@ -907,8 +1041,8 @@ function compactData(data) {
     let v = data[k];
     if (MEDIA.includes(k)) v = shrinkUrl(v);
     if (k === 'scrap') v = v.map(shrinkUrl);
-    if (k !== 'pw' && JSON.stringify(v) === JSON.stringify(DEFAULTS[k])) continue;   // default jaisi value link me nahi jaati
-    if (k === 'pw' && !v) continue;
+    if (k !== 'pw' && k !== 'ok' && JSON.stringify(v) === JSON.stringify(DEFAULTS[k])) continue;   // default jaisi value link me nahi jaati
+    if ((k === 'pw' || k === 'ok') && !v) continue;
     out[SHORT[k] || k] = v;
   }
   return out;
@@ -991,7 +1125,7 @@ async function makeLink() {
     name: CONFIG.name, nick: CONFIG.nick, from: CONFIG.from, dob: CONFIG.dob, lines: CONFIG.lines, reasons: CONFIG.reasons,
     theme: CONFIG.theme, unlock: CONFIG.unlock, photo: CONFIG.photo, video: CONFIG.video, music: CONFIG.music,
     videoWhen: CONFIG.videoWhen, occasion: CONFIG.occasion, relation: CONFIG.relation, anim: CONFIG.anim, effect: CONFIG.effect, animColor: CONFIG.animColor, title: CONFIG.title, emoji: CONFIG.emoji,
-    scrap: (CONFIG.scrap || []).slice(), pw: ''
+    scrap: (CONFIG.scrap || []).slice(), pw: '', relThemes: CONFIG.relThemes, relAuto: CONFIG.relAuto, ok: ''
   };
   const keys = ['photo', 'video', 'music'];
   const names = { photo: 'Photo', video: 'Video', music: 'Gana' };
@@ -1033,6 +1167,10 @@ async function makeLink() {
   try {
     const pw = $('fPass').value;
     if (pw) data.pw = await sha256(pw);
+    // Owner code: link me sirf uska hash jaata hai. Timer laga ho aur code na diya ho to apne aap ban jata hai
+    let code = CONFIG.owner;
+    if (!code && !CONFIG.ok && CONFIG.unlock) { code = String(Math.floor(100000 + Math.random() * 900000)); CONFIG.owner = code; $('fOwner').value = code; }
+    if (code) data.ok = await sha256('own:' + code); else if (CONFIG.ok) data.ok = CONFIG.ok;
     if (jobs.length) { box.hidden = false; show(); note.textContent = 'Upload chal raha hai, page band mat karna...'; }
     else note.textContent = 'Link ban raha hai...';
 
@@ -1047,6 +1185,15 @@ async function makeLink() {
 
     shareUrl = base + await encodeShort(data);
     $('shareLink').value = shareUrl;
+    // Upload hui files ab online link ban gayi hain: dobara edit karte waqt dobara upload nahi karni padegi
+    keys.forEach(k => { if (files[k] && /^https?:/i.test(data[k])) { CONFIG[k] = data[k]; delete files[k]; } });
+    if (data.scrap.length && data.scrap.every(u => /^https?:/i.test(u))) {
+      CONFIG.scrap = data.scrap.slice();
+      for (let i = 0; i < 4; i++) delete files['s' + i];
+    }
+    CONFIG.ok = data.ok || CONFIG.ok;
+    rememberOwner(CONFIG.ok);
+    markCustomized(); saveDraft();
     if (jobs.length) $('upPct').textContent = 'Upload 100% poora';
     // Jo file online (https) nahi hai wo dusre ke phone par nahi dikhegi, uska saaf warning
     const miss = keys.filter(k => data[k] && !/^https?:/i.test(data[k]));
@@ -1054,7 +1201,8 @@ async function makeLink() {
     note.textContent = 'Link taiyar hai! Copy karo ya WhatsApp par bhejo.' +
       (miss.length ? ' DHYAN: ' + miss.map(k => names[k] + ' (' + data[k] + ')').join(', ') +
         ' sirf tabhi dikhegi jab ye file site ke folder me index.html ke saath online daali ho. Safe tarika: device se upload karo ya https link do.' : '') +
-      (empty.length ? ' Khali: ' + empty.map(k => names[k]).join(', ') + ' (link me nahi gayi).' : '');
+      (empty.length ? ' Khali: ' + empty.map(k => names[k]).join(', ') + ' (link me nahi gayi).' : '') +
+      (code && data.unlock ? ' OWNER CODE: ' + code + ' (timer se pehle kholne ke liye. Receiver ko mat batana. Isi device par code ki zaroorat nahi padegi).' : '');
   } catch (e) {
     note.textContent = 'Error: ' + e.message;
   } finally {
@@ -1215,7 +1363,7 @@ function previewSteps() {
   S.push({ go: 'intro', when: 'Page khulte hi', title: 'Pehli screen',
     text: '"Tap karo" likha aata hai aur "Open my surprise" button. Upar title bar me Home, Preview, Share aur Customize options rehte hain.' +
       (c.pw ? ' Password daalna padega.' : '') +
-      (c.unlock ? ' Page ' + new Date(c.unlock).toLocaleString('en-IN') + ' tak lock rahega aur countdown dikhega.' : '') });
+      (c.unlock ? ' Page ' + new Date(c.unlock).toLocaleString('en-IN') + ' tak receiver ke liye lock rahega aur countdown dikhega. Tum owner ho isliye "Abhi kholo" se pehle khol sakte ho.' : '') });
 
   S.push({ go: 'env', when: 'Tap karte hi (0 se 4 second)', title: '3D lifafa',
     text: 'Lifafa khulta hai, andar se "' + t + '" wala letter nikalta hai aur dil bikhar jaate hain' + (c.music ? '. Gana bhi shuru ho jata hai.' : '.') });
@@ -1304,13 +1452,34 @@ $('fMsg').addEventListener('input', () => { msgTouched = true; });
 $('fTitle').addEventListener('input', previewLook);
 $('fEmoji').addEventListener('input', previewLook);
 
+// Theme button, rishta themes, owner aur dobara edit
+$('relBox').addEventListener('change', applyRelTheme);
+$('nRelAuto').addEventListener('change', () => { $('fRelAuto').checked = $('nRelAuto').checked; applyRelTheme(); });
+$('nRelCustom').addEventListener('click', () => {
+  $('navTheme').open = false; $('nav').classList.remove('open');
+  toggleDrawer(true);
+  setTimeout(() => $('relBox').scrollIntoView({ behavior: 'smooth', block: 'center' }), 350);
+});
+document.addEventListener('click', e => { const d = $('navTheme'); if (d.open && !d.contains(e.target)) d.open = false; });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') $('navTheme').open = false; });
+$('editAgain').addEventListener('click', () => toggleDrawer(true));
+$('lockChip').addEventListener('click', () => { ownerBypass = false; checkLock(true); });
+$('ownOpen').addEventListener('click', () => {
+  if (!isViewer()) { ownerBypass = true; checkLock(); }
+  else { $('ownRow').hidden = !$('ownRow').hidden; if (!$('ownRow').hidden) $('ownIn').focus(); }
+});
+$('ownGo').addEventListener('click', tryOwnerCode);
+$('ownIn').addEventListener('keydown', e => { if (e.key === 'Enter') tryOwnerCode(); });
+
 // Shuru me: share link (#w=...) se khola gaya ho to details link se hi padh lo
 async function init() {
   if (isWishHash()) {
     document.body.classList.add('view');      // dekhne wale ko Customize nahi dikhega
     try {
       Object.assign(CONFIG, await decodeHash(location.hash));
-      if (CONFIG.pw) {                        // password laga ho to pehle wo poochho
+      const mine = !!CONFIG.ok && ownerList().includes(CONFIG.ok);   // ye wish isi device se banayi thi
+      if (mine) { document.body.classList.remove('view'); ownerBypass = true; customized = true; }
+      if (CONFIG.pw && !mine) {                        // password laga ho to pehle wo poochho
         $('openBtn').hidden = true; $('gate').hidden = false;
         const tryPw = async () => {
           if (await sha256($('gateIn').value) === CONFIG.pw) { $('gate').hidden = true; $('openBtn').hidden = false; }
@@ -1323,9 +1492,10 @@ async function init() {
       $('openBtn').disabled = true;
       $('introHint').textContent = 'Link adhoora ya galat hai. Bhejne wale se naya link maango.';
     }
-  }
+  } else loadDraft();
   fillLook();
   applyTheme();
   checkLock();
+  updateEditLabels();
 }
 init();

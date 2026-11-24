@@ -1,5 +1,5 @@
  /* =====================================================
-   1. YAHAN APNI DETAILS BADLO (sirf yahi hissa badalna hai)
+   1.Change your details here (only this part needs to be changed)
    ===================================================== */
 /* Footer me "Made with love by ..." ke baad ye naam hamesha dikhega */
 const FOOTER_NAME = 'Sumiii';

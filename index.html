@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<!-- Romantic Birthday Wish
-     index.html = dhancha | style.css = design + 3D animation | script.js = logic
-     Naam, DOB, photo aur message script.js ke sabse upar badalna hai -->
+<!-- Romantic Birthday Wish -->
+   
 <html lang="en">
 <head>
+  
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Happy Birthday</title>
+  <title>Wish Maker</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Poppins:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
@@ -36,25 +36,25 @@
     <div class="navTools ownerOnly" id="navTools">
       <label>Occasion
         <select id="nOcc"></select></label>
-      <label>Tumhara rishta
+      <label>Tumhara relationship
         <select id="nRel">
-          <option value="love">Partner (pyaar)</option>
+          <option value="love">Partner </option>
           <option value="friend">Dost</option>
           <option value="family">Family</option>
         </select></label>
       <details class="navAnim navTheme" id="navTheme">
         <summary>&#127912; Theme: <span id="navThemeName">Rose</span></summary>
         <div class="animPanel" id="nThemePanel" role="group" aria-label="Theme chuno">
-          <p class="animHint">Theme chuno. Rishta badalne par theme bhi badal sakta hai.</p>
+          <p class="animHint">Select a theme for your wish.</p>
           <div id="nThemeBtns"></div>
           <label><input type="checkbox" id="nRelAuto" checked> Rishta badle to theme bhi badle</label>
-          <button type="button" class="btn ghost nRelCustom" id="nRelCustom">Rishta ke themes customize karo</button>
+          <button type="button" class="btn ghost nRelCustom" id="nRelCustom">Relationship ke themes customize karo</button>
         </div>
       </details>
       <details class="navAnim" id="navAnim">
         <summary>Animation <span id="nAnimCount" class="cnt">1</span></summary>
         <div class="animPanel" id="nAnim" role="group" aria-label="Background animation">
-          <p class="animHint">Jitni chaho chuno. Tick karte hi lag jaati hai.</p>
+          <p class="animHint">Select a background animation for your wish.</p>
         </div>
       </details>
       <label>Colour
@@ -64,23 +64,23 @@
     </div>
   </header>
 
-  <!-- Lock screen: tay samay se pehle page nahi khulega -->
+  <!-- Lock screen: Fix time se pahle page open nahi  hoga -->
   <section class="lock" id="lock" hidden>
-    <p class="small">Ye surprise abhi band hai</p>
-    <h2 class="script">Thoda intezaar...</h2>
+    <p class="small">your wish is coming soon...</p>
+    <h2 class="script">Pls wait...</h2>
     <p class="count" id="count"></p>
-    <!-- Jisne banaya hai wo timer se pehle khol sake -->
+    <!-- Only owner can open the wish -->
     <div class="ownBox" id="ownBox">
-      <button type="button" class="btn ghost" id="ownOpen">Main banane wala hoon, abhi kholo</button>
+      <button type="button" class="btn ghost" id="ownOpen">I am the owner</button>
       <div class="ownRow" id="ownRow" hidden>
         <input id="ownIn" placeholder="Owner code daalo" autocomplete="off" maxlength="40">
-        <button type="button" class="btn" id="ownGo">Kholo</button>
+        <button type="button" class="btn" id="ownGo">Open</button>
         <p class="note" id="ownNote"></p>
       </div>
     </div>
   </section>
 
-  <!-- Side panel: user yahan apni details, photo, video aur message daalta hai -->
+  <!-- Side panel: user yahan apni details, photo, video aur message paste karta hai -->
   <aside class="drawer" id="drawer" aria-hidden="true">
     <div class="dHead">
       <h3 class="script">Apna surprise banao</h3>
@@ -88,65 +88,65 @@
     </div>
     <p class="note savedNote" id="savedNote" hidden></p>
     <form id="form" autocomplete="off">
-      <label>Jisko wish karni hai (naam)
+      <label>Jisko wish karni hai (Name)
         <input id="fName" maxlength="30"></label>
-      <label>Nickname (pyaar se bulane wala naam)
+      <label>Nickname 
         <input id="fNick" maxlength="30" placeholder="jaise Chhotu, Jaan"></label>
-      <label>Tumhara naam
+      <label>Your name 
         <input id="fFrom" maxlength="30"></label>
-      <label>Janam tithi (date of birth)
+      <label>Date of birth
         <input type="date" id="fDob"></label>
-      <label>Photo upload karo
+      <label> Upload your photo 
         <input type="file" id="fPhoto" accept="image/*"></label>
       <label>ya Photo ka link paste karo
         <input type="url" id="fPhotoUrl" placeholder="https://.../photo.jpg"></label>
-      <label>Short video upload karo (candle wali clip)
+      <label> upload Short video (candle wali clip)
         <input type="file" id="fVideo" accept="video/*"></label>
       <label>ya Video ka link paste karo
         <input type="url" id="fVideoUrl" placeholder="https://.../clip.mp4"></label>
-      <label>Video kab chale
+      <label>Video kab chale (default = candle bujhane ke baad)
         <select id="fVideoWhen">
-          <option value="after">Candle bujhane ke baad</option>
+          <option value="after">After blowing candles</option>
           <option value="before">Cake se pehle</option>
         </select></label>
       <label>Occasion
         <select id="fOcc"></select></label>
-      <label>Tumhara rishta
+      <label>Your relationship with receiver
         <select id="fRel">
-          <option value="love">Partner (pyaar)</option>
+          <option value="love">Partner </option>
           <option value="friend">Dost</option>
           <option value="family">Family</option>
         </select></label>
       <label>Apna khud ka title (khali = occasion wala)
         <input id="fTitle" maxlength="30" placeholder="jaise: Happy 25th Birthday"></label>
-      <label>Message ka andaaz
+      <label>Type of message
         <select id="fStyle">
-          <option value="khaas">Occasion wala khaas message</option>
+          <option value="khaas">Occasion message</option>
           <option value="shayari">Shayari andaaz</option>
           <option value="emotional">Emotional</option>
           <option value="funny">Funny / masti</option>
-          <option value="short">Chhota (ek line)</option>
+          <option value="short">One line message</option>
         </select></label>
-      <button type="button" class="btn ghost sug" id="sugBtn">Message suggestion do</button>
-      <label>Message (har line alag likho)
+      <button type="button" class="btn ghost sug" id="sugBtn">Suggest a Message</button>
+      <label>Type your message (max 500 characters)
         <textarea id="fMsg" rows="6"></textarea></label>
-      <label>Gana (music) upload karo
+      <label>Upload your favorite song (mp3)
         <input type="file" id="fMusic" accept="audio/*"></label>
-      <label>ya Gane ka link paste karo
+      <label>Upload song share link  (mp3)
         <input type="url" id="fMusicUrl" placeholder="https://.../song.mp3"></label>
-      <label>Tumhe pyaar karne ki wajah (har line alag)
+      <label>Reasons why you love / like / care for them (max 4, each 100 characters)
         <textarea id="fReasons" rows="4"></textarea></label>
       <label>Theme
-        <select id="fTheme"><option value="rose">Rose</option><option value="gold">Gold</option><option value="midnight">Midnight blue</option><option value="violet">Violet</option><option value="emerald">Emerald green</option><option value="tricolor">Tricolor (Tiranga)</option><option value="ruby">Ruby red</option></select></label>
+        <select id="fTheme"><option value="rose">Rose</option><option value="gold">Gold</option><option value="midnight">Midnight blue</option><option value="violet">Violet</option><option value="emerald">Emerald green</option><option value="tricolor">Tricolor (Tiranga)</option><option value="ruby">Ruby red</option></select></label><option value="NexaFlow ">NexaFlow </option>
       <fieldset class="chk" id="relBox">
-        <legend>Rishta ke hisaab se theme (customize)</legend>
-        <label><input type="checkbox" id="fRelAuto" checked> Rishta badalte hi theme bhi badle</label>
-        <label class="rtRow">Partner (pyaar) <select id="fRtLove"></select></label>
+        <legend>Costomize your theme according to your relationship</legend>
+        <label><input type="checkbox" id="fRelAuto" checked> Relationship-based theme</label>
+        <label class="rtRow">Partner <select id="fRtLove"></select></label>
         <label class="rtRow">Dost <select id="fRtFriend"></select></label>
         <label class="rtRow">Family <select id="fRtFamily"></select></label>
       </fieldset>
       <fieldset class="chk" id="fAnim">
-        <legend>Background animation (jitni chaho chuno)</legend>
+        <legend>Background animation </legend>
       </fieldset>
       <label>Effect
         <select id="fEffect">
@@ -156,14 +156,14 @@
           <option value="fast">Tez</option>
           <option value="dense">Zyada (bheed)</option>
         </select></label>
-      <label>Apne emoji (jo chaho likho, wahi udenge)
+      <label>Apne emoji
         <input id="fEmoji" maxlength="40" placeholder="jaise: 🦋🌹🥳🍕"></label>
       <label>Colour (animation aur page ka accent)
         <input type="color" id="fAnimColor" value="#ff4d79"></label>
       <button type="button" class="btn ghost sug" id="colorAuto">Auto colour (theme wala)</button>
-      <label>Yaadon ka scrapbook (4 photo tak)
+      <label>YOUR SCRAPBOOK: Upload your favorite photos (max 10, each 5MB)
         <input type="file" id="fScrap" accept="image/*" multiple></label>
-      <label>Password (khali = koi password nahi)
+      <label>Password (receiver ke liye. Khali = koi password nahi)
         <input type="password" id="fPass" autocomplete="new-password" maxlength="40"></label>
       <label>Page kab khule (receiver ke liye. Khali = turant. Tum timer se pehle bhi khol sakte ho)
         <input type="datetime-local" id="fLock"></label>
@@ -192,12 +192,12 @@
 
   <!-- Pehli screen: tap karne par surprise khulta hai -->
   <section class="intro" id="intro">
-    <p class="small" id="introHint">Ek chhota sa surprise tumhare liye</p>
+    <p class="small" id="introHint">A small surprise for you</p>
     <h1 class="script">Tap karo</h1>
     <button type="button" class="btn pulse" id="openBtn">Open my surprise</button>
     <div class="gate" id="gate" hidden>
       <input type="password" id="gateIn" placeholder="Password daalo" autocomplete="off">
-      <button type="button" class="btn" id="gateBtn">Kholo</button>
+      <button type="button" class="btn" id="gateBtn">Open</button>
       <p class="note" id="gateNote"></p>
     </div>
   </section>
@@ -210,7 +210,7 @@
       <div class="front"></div>
       <div class="flap"></div>
     </div>
-    <p class="openText script" id="openText">Ek chhoti si video tumhare liye...</p>
+    <p class="openText script" id="openText">A small surprise for you...</p>
   </section>
 
   <!-- Uske baad short video (video.mp4) apne aap chalti hai -->
@@ -269,8 +269,8 @@
         </g>
       </svg></div>
     </div>
-    <p class="script cakeMsg" id="cakeMsg">Wish maango, phir candles bujhao</p>
-    <button type="button" class="btn" id="blowBtn">Phoonk maaro</button>
+    <p class="script cakeMsg" id="cakeMsg">Make a wish, then blow out the candles</p>
+    <button type="button" class="btn" id="blowBtn">Blow Out Candles</button>
   </section>
 
   <!-- Asli birthday screen -->
@@ -302,8 +302,8 @@
     <div class="scrap" id="scrap"></div>
     <div class="actions">
       <button type="button" class="btn" id="moreBtn">Send more love</button>
-      <button type="button" class="btn ghost" id="replayBtn">Dobara dekho</button>
-      <button type="button" class="btn ghost ownerOnly" id="editAgain" hidden>Customize dobara badlo</button>
+      <button type="button" class="btn ghost" id="replayBtn">Play again</button>
+      <button type="button" class="btn ghost ownerOnly" id="editAgain" hidden>Customize your wish</button>
       <button type="button" class="btn ghost" id="waStage">WhatsApp</button>
     </div>
   </main>
@@ -311,30 +311,33 @@
   <footer class="foot" id="foot">
     <div class="footIn">
       <div class="fBrand">
-        <p class="fLogo script"><span aria-hidden="true">&#10022;</span> Birthday Wish</p>
-        <p class="fTag">Apno ke liye ek chhota sa 3D surprise. Photo, video, gana aur dil ki baat, sab ek link me.</p>
+        <p class="fLogo script"><span aria-hidden="true">&#10022;</span> Wish maker</p>
+        <p class="fTag"> Make birthdays magical ✨          Build a personalized birthday website with photos, personal messages, music,video and an animated celebration made just for them.</p>
       </div>
       <div>
         <h4 class="fHead">Surprise</h4>
         <ul class="fList">
-          <li><button type="button" class="fLink" id="footReplay">Dobara dekho</button></li>
-          <li><button type="button" class="fLink" id="footWA">WhatsApp par bhejo</button></li>
-          <li><button type="button" class="fLink" id="footCopy">Link copy karo</button></li>
-          <li class="ownerOnly"><button type="button" class="fLink" id="footCustom">Customize karo</button></li>
+          <li><button type="button" class="fLink" id="footReplay">Play again</button></li>
+          <li><button type="button" class="fLink" id="footWA">Share via WhatsApp</button></li>
+          <li><button type="button" class="fLink" id="footCopy">Copy link</button></li>
+          <li class="ownerOnly"><button type="button" class="fLink" id="footCustom">Customize</button></li>
         </ul>
       </div>
       <div>
-        <h4 class="fHead">Khaas baatein</h4>
+        <h4 class="fHead">Main topics</h4>
         <ul class="fList info">
-          <li>Hamesha free</li>
+          <li> for All festivals & occasions </li>
           <li>Optional password lock</li>
           <li>Sirf link wale hi dekh sakte hain</li>
-          <li>Mobile par bhi smooth</li>
+          <li>For all  type of relationships</li>
+          <li>Customizable messages</li>
+          <li>Upload your own photos, videos and music</li>
+          <li>3D animations and effects</li>
         </ul>
       </div>
     </div>
     <div class="fBar">
-      <span>&copy; <span id="footYear"></span> Birthday Wish</span>
+      <span>&copy; <span id="footYear"></span>Wish Maker</span>
       <span>Made with <span class="fHeart" aria-label="pyaar">&#10084;</span> by <b id="footFrom"></b></span>
     </div>
   </footer>
@@ -357,7 +360,7 @@
       </div>
       <p class="pvSum" id="pvSum"></p>
       <ol class="pvList" id="pvList"></ol>
-      <div class="pvFoot"><button type="button" class="btn" id="pvPlay">Shuru se poora preview chalao</button></div>
+      <div class="pvFoot"><button type="button" class="btn" id="pvPlay">Start the  preview </button></div>
     </div>
   </div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
